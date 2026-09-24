@@ -14,6 +14,7 @@
 package org.openmetadata.service.migration.postgres.v210;
 
 import static org.openmetadata.service.jdbi3.locator.ConnectionType.POSTGRES;
+import static org.openmetadata.service.migration.utils.v210.AlertBacklogMigration.skipBacklogOfAlertsThePreviousReleaseCouldNotSend;
 import static org.openmetadata.service.migration.utils.v210.DataContractEntityReferenceMigration.rebuildDataContractEntityReferences;
 import static org.openmetadata.service.migration.utils.v210.DataQualityDimensionMigration.backfillTestCaseDimensions;
 import static org.openmetadata.service.migration.utils.v210.DottedServiceFqnMigration.repairDottedServiceChildFqns;
@@ -69,5 +70,8 @@ public class Migration extends MigrationProcessImpl {
     // Data contracts stored their entity reference as sent, usually without a name or FQN.
     // Runs after the FQN repair above so contracts copy the repaired FQNs. Idempotent.
     rebuildDataContractEntityReferences(collectionDAO);
+    // Alerts the previous release stopped sending, because it could not build one of their
+    // destinations, send again from this release; they start from the upgrade, not their backlog.
+    skipBacklogOfAlertsThePreviousReleaseCouldNotSend(collectionDAO);
   }
 }
