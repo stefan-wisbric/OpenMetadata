@@ -44,6 +44,8 @@ export interface AlertAiFormFieldsProps {
   inlineAlert?: ComponentProps<typeof InlineAlert>;
   isViewOnly?: boolean;
   onChange?: (value: ModifiedCreateEventSubscription) => void;
+  /** The recipient categories the server offers for the selected sources. */
+  recipientCategories?: string[];
   showBasicFields?: boolean;
   shouldShowActionsSection: boolean;
   shouldShowFiltersSection: boolean;
@@ -148,6 +150,7 @@ export interface AiArgumentAutocompleteProps extends RuleArgumentFieldProps {
 export interface AlertAiDestinationSectionProps {
   isViewOnly?: boolean;
   onChange?: AlertAiFormFieldsProps['onChange'];
+  recipientCategories?: string[];
   selectedSource?: string;
   validationErrors?: AlertAiFormValidationErrors;
   value: AlertAiFormValue;

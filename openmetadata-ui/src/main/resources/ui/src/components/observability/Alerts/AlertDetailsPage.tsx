@@ -102,8 +102,6 @@ const AlertDetailsPage = ({
     onEditAlert: handleEditAlert,
     onTabChange: (tab) => handleTabChange(tab),
   });
-  const alertFormState = useAlertFormData({ alertType: kind.alertType, fqn });
-
   const {
     alertDetails,
     alertEventCounts,
@@ -139,16 +137,17 @@ const AlertDetailsPage = ({
         : undefined,
     [alertDetails]
   );
-  const [selectedSource] = alertConfigValue
-    ? getAlertAiResources(alertConfigValue)
-    : [];
-  const selectedAlertResource = useMemo(
-    () =>
-      alertFormState.filterResources.find(
-        (resource) => resource.name === selectedSource
-      ),
-    [alertFormState.filterResources, selectedSource]
+  // The configuration view follows every source the alert watches, as the server answers for them.
+  const sources = useMemo(
+    () => (alertConfigValue ? getAlertAiResources(alertConfigValue) : []),
+    [alertConfigValue]
   );
+  const alertFormState = useAlertFormData({
+    alertType: kind.alertType,
+    fqn,
+    sources,
+  });
+  const { support } = alertFormState.selection;
 
   const handleConfirmDelete = useCallback(async () => {
     if (!alertDetails?.id) {
@@ -212,10 +211,11 @@ const AlertDetailsPage = ({
           alert={alertConfigValue}
           filterResources={alertFormState.filterResources}
           mode="view"
+          recipientCategories={support.recipientCategories}
           shouldShowActionsSection={kind.hasTriggers}
           shouldShowTemplateSection={!isEmpty(alertFormState.extraFormWidgets)}
-          supportedFilters={selectedAlertResource?.supportedFilters}
-          supportedTriggers={selectedAlertResource?.supportedActions}
+          supportedFilters={support.supportedFilters}
+          supportedTriggers={support.supportedTriggers}
           templates={alertFormState.templates}
           value={alertConfigValue}
         />
@@ -231,8 +231,7 @@ const AlertDetailsPage = ({
     alertFormState.filterResources,
     alertFormState.templates,
     kind.hasTriggers,
-    selectedAlertResource?.supportedActions,
-    selectedAlertResource?.supportedFilters,
+    support,
     tab,
   ]);
 

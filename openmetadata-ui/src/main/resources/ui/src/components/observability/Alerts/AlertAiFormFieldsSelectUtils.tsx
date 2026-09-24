@@ -14,12 +14,7 @@
 import { Select, SelectItemType } from '@openmetadata/ui-core-components';
 import { TFunction } from 'i18next';
 import { isEmpty, isString, startCase } from 'lodash';
-import {
-  DATA_CONTRACT_STATUS_OPTIONS,
-  DESTINATION_DROPDOWN_TABS,
-  EXTERNAL_CATEGORY_OPTIONS,
-  INTERNAL_CATEGORY_OPTIONS,
-} from '../../../constants/Alerts.constants';
+import { DATA_CONTRACT_STATUS_OPTIONS } from '../../../constants/Alerts.constants';
 import { StatusType } from '../../../generated/entity/data/pipeline';
 import { NotificationTemplate } from '../../../generated/entity/events/notificationTemplate';
 import { PipelineState } from '../../../generated/entity/services/ingestionPipelines/ingestionPipeline';
@@ -27,13 +22,12 @@ import { Type } from '../../../generated/events/eventSubscription';
 import { TestCaseStatus } from '../../../generated/tests/testCase';
 import { EventType } from '../../../generated/type/changeEvent';
 import {
-  getFilteredDestinationOptions,
   getSelectOptionsFromEnum,
   getSelectOptionsFromValues,
   getSubscriptionTypeOptions,
 } from '../../../utils/Alerts/AlertsUtilPure';
 import { getEntityName } from '../../../utils/EntityNameUtils';
-import { getAlertDestinationCategoryIcons } from '../../../utils/ObservabilityUtils';
+import { buildGroupedOptions } from '../../Alerts/DestinationFormItem/DestinationSelectItem/DestinationSelectItem.utils';
 import { getTemplateEntityRefObject } from './NotificationTemplateUtils';
 import {
   CUSTOM_TEMPLATE_VALUE,
@@ -66,48 +60,21 @@ export const toSelectItems = (
     label: option.label,
   }));
 
-const toDestinationCategoryItem = (option: {
-  value: string;
-}): SelectItemType => ({
-  icon: getAlertDestinationCategoryIcons(String(option.value)),
-  id: String(option.value),
-  label: startCase(String(option.value)),
-});
-
-export const INTERNAL_DESTINATION_ITEMS: SelectItemType[] =
-  INTERNAL_CATEGORY_OPTIONS.map(toDestinationCategoryItem);
-
-export const EXTERNAL_DESTINATION_ITEMS: SelectItemType[] =
-  EXTERNAL_CATEGORY_OPTIONS.map((option) => ({
-    icon: getAlertDestinationCategoryIcons(String(option.value)),
-    id: String(option.value),
-    label: startCase(String(option.value)),
-  }));
-
 /**
- * Internal categories are narrowed by source exactly like the classic
- * `DestinationSelectItem` (e.g. no Assignees/Mentions for plain entity events).
+ * The same categories as the classic `DestinationSelectItem`: the internal ones the server offers
+ * for the selected sources, with the one a destination already has, and every external one.
  */
 export const getDestinationCategoryItems = (
   t: TFunction,
-  selectedSource?: string
-): SelectItemType[] => [
-  {
-    id: 'header-internal',
-    isDisabled: true,
-    label: t('label.internal'),
-  },
-  ...getFilteredDestinationOptions(
-    DESTINATION_DROPDOWN_TABS.internal,
-    selectedSource ?? ''
-  ).map(toDestinationCategoryItem),
-  {
-    id: 'header-external',
-    isDisabled: true,
-    label: t('label.external'),
-  },
-  ...EXTERNAL_DESTINATION_ITEMS,
-];
+  offeredCategories?: string[],
+  currentCategory?: string
+): SelectItemType[] =>
+  buildGroupedOptions(
+    t('label.internal'),
+    t('label.external'),
+    offeredCategories,
+    currentCategory
+  );
 
 export const getAuthTypeItems = (t: TFunction): SelectItemType[] => [
   { id: Type.None, label: t('label.no-authentication') },
